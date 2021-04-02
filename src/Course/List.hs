@@ -240,20 +240,12 @@ flattenAgain = flatMap id
 -- >>> seqOptional (Empty :. map Full infinity)
 -- Empty
 
--- seqOptional :: [Maybe Integer] -> Maybe [Integer]
--- seqOptional xs | isJust (foldr (<*) (Just 1) xs) = Just (map fromJust xs) 
---                | otherwise = Nothing
-
 seqOptional ::
   List (Optional a)
   -> Optional (List a)
--- seqOptional xs | isFull (foldRight (<->) (Full 1) xs) = Full (map fromFull xs) 
---                | otherwise = Empty
+seqOptional xs | isFull (foldRight (<<*) (Full undefined) xs) = Full (map fromFull xs) 
+               | otherwise = Empty
 
-seqOptional = undefined
-
--- a = Full 1 :. Full 10 :. Nil
--- b = Full 1 :. Full 10 :. Empty :. Nil
 
 (<->) ::
   Optional a
@@ -263,6 +255,11 @@ seqOptional = undefined
 (<->) Empty  _     = Empty
 (<->) a      _     = a
 (<->) _      b     = b
+
+(<<*) :: Optional a -> Optional a -> Optional a
+(<<*) _      Empty = Empty
+(<<*) Empty  _     = Empty
+(<<*) a      _     = a
 
 isFull ::
   Optional a
@@ -275,11 +272,6 @@ fromFull ::
   -> a
 fromFull (Full a) = a
 fromFull _        = error "Value is Empty"
-
-tail :: List a -> List a
-tail Nil        = Nil
-tail (_ :. Nil) = Nil
-tail (_ :. xs)  = xs
 
 -- | Find the first element in the list matching the predicate.
 --
